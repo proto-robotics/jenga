@@ -1,0 +1,24 @@
+{
+  "name": "proto-lib",
+  "version": "1.0.0",
+  "description": "Build a function vocabulary and a blockly instance from one JSON object",
+  "keywords": [
+    "blockly",
+    "proto"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "foo"
+  },
+  "license": "MIT",
+  "author": "foo",
+  "type": "commonjs",
+  "main": "index.js",
+  "homepage": "foo",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "blockly": "^12.3.1"
+  }
+}

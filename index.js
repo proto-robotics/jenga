@@ -54,6 +54,7 @@ const BlocklyType = {
  * @returns {{toolbox: Toolbox, vocab: Vocabulary}} The generated structures.
  */
 export function process(categories) {
+  // TODO: specify generator via argument?
   const blocklyCategories = [];
 
   for (const category of categories) {

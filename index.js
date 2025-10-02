@@ -1,5 +1,4 @@
-import { Block, common, Field, Toolbox } from "blockly";
-import { pythonGenerator } from "blockly/python";
+import { Block, CodeGenerator, common, Field, Toolbox } from "blockly";
 
 /**
  * @typedef {object} Category
@@ -51,10 +50,10 @@ const BlocklyType = {
  * Processes a collection of categories to produce a blockly toolbox and a
  * function vocabulary.
  * @param {Category[]} categories The categories from which everything is built.
+ * @param {CodeGenerator} generator The blockly code generator.
  * @returns {{toolbox: Toolbox, vocab: Vocabulary}} The generated structures.
  */
-export function process(categories) {
-  // TODO: specify generator via argument?
+export function process(categories, generator) {
   const blocklyCategories = [];
 
   for (const category of categories) {
@@ -63,7 +62,7 @@ export function process(categories) {
     blocklyCategories.push(blocklyCategory);
 
     for (const entry of category.entries) {
-      const blocklyBlock = initBlocklyBlock(entry);
+      const blocklyBlock = initBlocklyBlock(entry, category, generator);
       blocklyCategory.contents.push(blocklyBlock);
     }
   }
@@ -88,9 +87,11 @@ function initBlocklyCategory(category) {
 
 /**
  * @param {Entry} entry The entry.
+ * @param {Category} category The category that contains the entry.
+ * @param {CodeGenerator} generator The blockly code generator.
  * @returns {{kind: string, type: string}} The blockly category entry.
  */
-function initBlocklyBlock(entry) {
+function initBlocklyBlock(entry, category, generator) {
   const blockDefinition = {
     init: function () {
       const inputConn = entry.blocklyInput;
@@ -118,14 +119,14 @@ function initBlocklyBlock(entry) {
 
       this.setTooltip(entry.description || "");
       this.setHelpUrl("");
-      // TODO: confirm color is inherited from category
+      this.setColour(category.color);
     },
   };
 
   // Define the block globally
   common.defineBlocks({ [entry.name]: blockDefinition });
-  // Add a python generator function for the block
-  pythonGenerator.forBlock[entry.name] = entry.codeGenerator;
+  // Add a generator function for the block
+  generator.forBlock[entry.name] = entry.codeGenerator;
 
   return {
     kind: "block",

@@ -1,5 +1,5 @@
 {
-  "name": "proto-lib",
+  "name": "@protorobotics/jenga",
   "version": "1.0.0",
   "description": "Build a function vocabulary and a blockly instance from one JSON object",
   "keywords": [
@@ -8,13 +8,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "foo"
+    "url": "git+https://github.com/proto-robotics/jenga"
   },
   "license": "MIT",
-  "author": "foo",
+  "author": "PROTO Robotics",
   "type": "commonjs",
-  "main": "index.js",
-  "homepage": "foo",
+  "main": "jenga.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

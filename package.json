@@ -1,6 +1,6 @@
 {
   "name": "@protorobotics/jenga",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Build a function vocabulary and a blockly instance from one JSON object",
   "keywords": [
     "blockly",

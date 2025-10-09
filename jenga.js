@@ -101,7 +101,7 @@ function initBlocklyBlock(entry, category, generator) {
     init: function () {
       const inputConn = entry.blocklyInput;
       const rootInput = !inputConn
-        ? this.appendDummyInput()
+        ? this.appendDummyInput("dummyInput")
         : this.appendValueInput(inputConn.name).setCheck(inputConn.type);
 
       for (const field of entry.blocklyTemplate) {

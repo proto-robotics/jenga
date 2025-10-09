@@ -18,9 +18,14 @@ import { Block, CodeGenerator, common, Field, Toolbox } from "blockly";
  */
 
 /**
+ * @callback FieldFunction
+ * @returns {Field} The blockly field object.
+ */
+
+/**
  * @typedef {object} BlocklyField
  * @property {string?} name The name of the field.
- * @property {Field?} field The blockly field object.
+ * @property {FieldFunction?} field Function that generates the blockly field object.
  * @property {string?} text Text displayed in place of the field.
  */
 
@@ -53,7 +58,7 @@ const BlocklyType = {
  * @param {CodeGenerator} generator The blockly code generator.
  * @returns {{toolbox: Toolbox, vocab: Vocabulary}} The generated structures.
  */
-export function process(categories, generator) {
+export function processJengaTower(categories, generator) {
   const blocklyCategories = [];
 
   for (const category of categories) {
@@ -105,7 +110,7 @@ function initBlocklyBlock(entry, category, generator) {
           rootInput.appendField(field.text);
         } else {
           // Additional user input
-          rootInput.appendField(field.field, field.name);
+          rootInput.appendField(field.field(), field.name);
         }
       }
 

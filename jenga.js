@@ -48,6 +48,7 @@ const BlocklyType = {
 /**
  * @callback CodeGenFunction
  * @param {Block} block The blockly block.
+ * @param {CodeGenerator | undefined} generator The blockly generator.
  * @returns {string} The generated code.
  */
 
@@ -108,9 +109,11 @@ function initBlocklyBlock(entry, category, generator) {
         if (field.text) {
           // Plain text
           rootInput.appendField(field.text);
-        } else {
+        } else if (field.field) {
           // Additional user input
           rootInput.appendField(field.field(), field.name);
+        } else {
+          console.error("unknown field type: ", field);
         }
       }
 

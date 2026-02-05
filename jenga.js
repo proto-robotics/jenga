@@ -1,4 +1,4 @@
-import { Block, CodeGenerator, common, Field, Toolbox } from "blockly";
+import { Block, CodeGenerator, common, Field, Toolbox, FieldImage } from "blockly";
 
 /**
  * @typedef {object} Category
@@ -12,8 +12,15 @@ import { Block, CodeGenerator, common, Field, Toolbox } from "blockly";
  * @property {string} name The name of the entry.
  * @property {string} description Description of the entry.
  * @property {BlocklyField[]} blocklyTemplate The template used to make the blockly block.
- * @property {BlocklyIOConnection?} blocklyInput The input connection for the block.
  * @property {BlocklyIOConnection?} blocklyOutput The output connection for the block.
+ * @property {boolean} inputsInline Whether the inputs are inline. Optional parameter only used in backend.
+ * @property {function(?): object} save Function that saves extra state for the block. Optional parameter only used in backend.
+ * @property {function(object): void} load Function that loads extra state for the block. Optional parameter only used in backend.
+ * @property {function(): void} update Function that updates the block shape based on state. Optional parameter only used in backend.
+ * @property {function(object): void} saveConnections Function that saves connections for the block. Optional parameter only used in backend.
+ * @property {function(object): object} compose Function that composes the block from saved connections. Optional parameter only used in backend.
+ * @property {function(object): object} decompose Function that decomposes the block to save connections. Optional parameter only used in backend.
+ * @property {function(object): void} onchange Function that handles block changes. Optional parameter
  * @property {CodeGenFunction} codeGenerator The code generator function used by blockly.
  */
 
@@ -27,6 +34,7 @@ import { Block, CodeGenerator, common, Field, Toolbox } from "blockly";
  * @property {string?} name The name of the field.
  * @property {FieldFunction?} field Function that generates the blockly field object.
  * @property {string?} text Text displayed in place of the field.
+ * @property {BlocklyIOConnection?} blocklyInput The input connection displayed in place of the field.
  */
 
 /**
@@ -42,7 +50,12 @@ import { Block, CodeGenerator, common, Field, Toolbox } from "blockly";
  */
 const BlocklyType = {
   bool: "Boolean",
-  // TODO: Add other types
+  number: "Number",
+  string: "String",
+  any: "Any",
+  void: "Void",
+  array: "Array",
+  color: "Colour",
 };
 
 /**
@@ -100,22 +113,46 @@ function initBlocklyCategory(category) {
 function initBlocklyBlock(entry, category, generator) {
   const blockDefinition = {
     init: function () {
-      const inputConn = entry.blocklyInput;
-      const rootInput = !inputConn
-        ? this.appendDummyInput("dummyInput")
-        : this.appendValueInput(inputConn.name).setCheck(inputConn.type);
+      let rootInput = null;
 
       for (const field of entry.blocklyTemplate) {
         if (field.text) {
-          // Plain text
-          rootInput.appendField(field.text);
+          if (!rootInput) {
+            rootInput = this.appendDummyInput()
+          }
+          //split text by \n
+          //create a new dummy input for every new line
+          //then add the text as a field
+          const cleanText = field.text.split("\n")
+          for (let i = 0; i < cleanText.length; i++) {
+            rootInput.appendField(cleanText[i]);
+
+            if (i != cleanText.length - 1) {
+              rootInput = this.appendDummyInput()
+            }
+          }
         } else if (field.field) {
+          if (!rootInput) {
+            rootInput = this.appendDummyInput()
+          }
           // Additional user input
           rootInput.appendField(field.field(), field.name);
+        } else if (field.blocklyInput) {
+          if (field.blocklyInput.type === "Any" || field.blocklyInput.type == null){
+            this.appendValueInput(field.blocklyInput.name)
+            rootInput = this.appendDummyInput() //needed to make sure next inputs go to after this one otheriwise they get added in front of this input
+          } else if (field.blocklyInput.type === "Void") {
+            rootInput = this.appendStatementInput(field.blocklyInput.name)
+          } else {
+            this.appendValueInput(field.blocklyInput.name).setCheck(field.blocklyInput.type || null)
+            rootInput = this.appendDummyInput() //needed to make sure next inputs go to after this one otheriwise they get added in front of this input
+          }
         } else {
           console.error("unknown field type: ", field);
         }
       }
+
+      this.setInputsInline(entry.inputsInline);
 
       const outputConn = entry.blocklyOutput;
       if (!outputConn) {
@@ -125,10 +162,21 @@ function initBlocklyBlock(entry, category, generator) {
         this.setOutput(true, outputConn.type);
       }
 
+      //TODO: figure out where to put this since every block will have the help button
+      rootInput.appendField(new FieldImage("./images/help.svg", 15, 15, "Info", () => console.log("Clicked!" + entry.name)), "info_icon");
+
       this.setTooltip(entry.description || "");
       this.setHelpUrl("");
       this.setColour(category.color);
     },
+
+    saveExtraState: entry.save, //used for saving extra state
+		loadExtraState: entry.load, //used for loading extra state
+		updateShape_: entry.update, //used for updating shape based on state
+    saveConnections: entry.saveConnections, //used for saving connections
+    compose: entry.compose, //used for composing block from saved connections
+    decompose: entry.decompose, //used for decomposing block to save connections
+    onchange: entry.onchange, //used for handling block changes
   };
 
   // Define the block globally
@@ -147,75 +195,8 @@ function initBlocklyBlock(entry, category, generator) {
  * @returns {{kind: string, contents: object[]}} The blockly toolbox.
  */
 function initBlocklyToolbox(blocklyCategories) {
-  // TODO: filter default categories
-  const defaultCategories = [
-    {
-      kind: "category",
-      name: "Flow",
-      colour: "#e9a719",
-      contents: [
-        {
-          kind: "block",
-          type: "controls_if",
-        },
-        {
-          kind: "block",
-          type: "logic_compare",
-        },
-        {
-          kind: "block",
-          type: "logic_operation",
-        },
-        {
-          kind: "block",
-          type: "logic_negate",
-        },
-        {
-          kind: "block",
-          type: "logic_boolean",
-        },
-        {
-          kind: "block",
-          type: "controls_repeat_ext",
-          inputs: {
-            TIMES: {
-              block: {
-                type: "math_number",
-                fields: {
-                  NUM: 10,
-                },
-              },
-            },
-          },
-        },
-        {
-          kind: "block",
-          type: "controls_whileUntil",
-        },
-      ],
-    },
-    {
-      kind: "category",
-      name: "Math",
-      colour: "#cc44cc",
-      contents: [
-        {
-          kind: "block",
-          type: "math_number",
-          fields: {
-            NUM: 123,
-          },
-        },
-        {
-          kind: "block",
-          type: "math_arithmetic",
-        },
-      ],
-    },
-  ];
-
   return {
     kind: "categoryToolbox",
-    contents: blocklyCategories.concat(defaultCategories),
+    contents: blocklyCategories,
   };
 }

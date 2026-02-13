@@ -1,4 +1,4 @@
-import { Block, CodeGenerator, common, Field, Toolbox, FieldImage } from "blockly";
+import { Block, CodeGenerator, common, Field, Toolbox, FieldImage, utils } from "blockly";
 
 /**
  * @typedef {object} Category
@@ -41,6 +41,7 @@ import { Block, CodeGenerator, common, Field, Toolbox, FieldImage } from "blockl
  * @typedef {object} BlocklyIOConnection
  * @property {BlocklyType} type The type of the connection.
  * @property {string} name The name of the connection.
+ * @property {string?} shadow The name of the optional shadow block to use for this connection. Only used for block inputs.
  */
 
 // TODO: define vocab objects
@@ -139,12 +140,34 @@ function initBlocklyBlock(entry, category, generator) {
           rootInput.appendField(field.field(), field.name);
         } else if (field.blocklyInput) {
           if (field.blocklyInput.type === "Any" || field.blocklyInput.type == null){
-            this.appendValueInput(field.blocklyInput.name)
+            rootInput = this.appendValueInput(field.blocklyInput.name)
+            if (field.blocklyInput.shadow) {
+              const shadowXml = utils.xml.textToDom(`
+              <shadow type="${field.blocklyInput.shadow}">
+              </shadow>
+              `);
+              rootInput.connection.setShadowDom(shadowXml);
+            }
+              
             rootInput = this.appendDummyInput() //needed to make sure next inputs go to after this one otheriwise they get added in front of this input
           } else if (field.blocklyInput.type === "Void") {
             rootInput = this.appendStatementInput(field.blocklyInput.name)
+            if (field.blocklyInput.shadow) {
+              const shadowXml = utils.xml.textToDom(`
+              <shadow type="${field.blocklyInput.shadow}">
+              </shadow>
+              `);
+              rootInput.connection.setShadowDom(shadowXml);
+            }
           } else {
-            this.appendValueInput(field.blocklyInput.name).setCheck(field.blocklyInput.type || null)
+            rootInput = this.appendValueInput(field.blocklyInput.name).setCheck(field.blocklyInput.type || null)
+            if (field.blocklyInput.shadow) {
+              const shadowXml = utils.xml.textToDom(`
+              <shadow type="${field.blocklyInput.shadow}">
+              </shadow>
+              `);
+              rootInput.connection.setShadowDom(shadowXml);
+            }
             rootInput = this.appendDummyInput() //needed to make sure next inputs go to after this one otheriwise they get added in front of this input
           }
         } else {

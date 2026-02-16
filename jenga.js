@@ -148,7 +148,7 @@ function initBlocklyBlock(entry, category, generator) {
               `);
               rootInput.connection.setShadowDom(shadowXml);
             }
-              
+
             rootInput = this.appendDummyInput() //needed to make sure next inputs go to after this one otheriwise they get added in front of this input
           } else if (field.blocklyInput.type === "Void") {
             rootInput = this.appendStatementInput(field.blocklyInput.name)

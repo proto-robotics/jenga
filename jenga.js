@@ -44,8 +44,6 @@ import { Block, CodeGenerator, common, Field, Toolbox, FieldImage, utils } from 
  * @property {string?} shadow The name of the optional shadow block to use for this connection. Only used for block inputs.
  */
 
-// TODO: define vocab objects
-
 /**
  * @enum {string}
  */
@@ -67,17 +65,15 @@ const BlocklyType = {
  */
 
 /**
- * Processes a collection of categories to produce a blockly toolbox and a
- * function vocabulary.
+ * Processes a collection of categories to produce a Blockly toolbox.
  * @param {Category[]} categories The categories from which everything is built.
  * @param {CodeGenerator} generator The blockly code generator.
- * @returns {{toolbox: Toolbox, vocab: Vocabulary}} The generated structures.
+ * @returns {{toolbox: Toolbox}} The generated structures.
  */
 export function processJengaTower(categories, generator) {
   const blocklyCategories = [];
 
   for (const category of categories) {
-    // TODO: add vocab functions
     const blocklyCategory = initBlocklyCategory(category);
     blocklyCategories.push(blocklyCategory);
 
@@ -89,7 +85,7 @@ export function processJengaTower(categories, generator) {
 
   const toolbox = initBlocklyToolbox(blocklyCategories);
 
-  return { toolbox: toolbox, vocab: null };
+  return { toolbox: toolbox };
 }
 
 /**
@@ -184,9 +180,6 @@ function initBlocklyBlock(entry, category, generator) {
       } else {
         this.setOutput(true, outputConn.type);
       }
-
-      //TODO: figure out where to put this since every block will have the help button
-      rootInput.appendField(new FieldImage("./images/help.svg", 15, 15, "Info", () => console.log("Clicked!" + entry.name)), "info_icon");
 
       this.setTooltip(entry.description || "");
       this.setHelpUrl("");
